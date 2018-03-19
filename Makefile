@@ -32,7 +32,7 @@ IBV_DIR = /opt/ofed/
 PSM_DIR = /usr/
 
 CFLAGS += $(IBV_INC)
-LDFLAGS += -shared -Lstatic
+LDFLAGS += -shared
 
 ### FOR USING PAPI ##
 # PAPI_LIB = $(TACC_PAPI_LIB) -lpapi
@@ -50,14 +50,17 @@ endif
 
 ifeq ($(LC_SERVER), ofi)
 	CFLAGS += -DLC_USE_SERVER_OFI -DAFF_DEBUG
+	LDFLAGS += -lfabric
 endif
 
 ifeq ($(LC_SERVER), ibv)
 	CFLAGS += -DLC_USE_SERVER_IBV -DAFF_DEBUG -I$(IBV_DIR)/include
+	LDFLAGS += -libverbs
 endif
 
 ifeq ($(LC_SERVER), psm)
 	CFLAGS += -DLC_USE_SERVER_PSM -DAFF_DEBUG -I$(PSM_DIR)/include
+	LDFLAGS += -lpsm2
 endif
 
 COMM = lc.o rma.o queue.o tag.o hashtable.o pool.o lcrq.o coll.o
