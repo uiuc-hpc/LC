@@ -20,4 +20,7 @@
 #define LC_SERVER_NUM_PKTS 1024
 #define LC_CACHE_LINE 64
 
+#define LC_PKT_RET_MED_SIZE 1024
+// #define LC_PKT_RET_LONG
+
 #endif

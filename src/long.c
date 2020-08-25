@@ -1,13 +1,20 @@
 #include "lc.h"
+#include "config.h"
 
 #include "lc_priv.h"
 #include "lc/pool.h"
+
+#ifdef LC_PKT_RET_LONG
+#define LC_LONG_POOL_ID(ep) (lc_pool_get_local_id(ep->pkpool))
+#else
+#define LC_LONG_POOL_ID(ep) (-1)
+#endif
 
 lc_status lc_sendl(void* src, size_t size, int rank, int tag, lc_ep ep,
                    lc_send_cb cb, void* ce)
 {
   LC_POOL_GET_OR_RETN(ep->pkpool, p);
-  lci_pk_init(ep, -1, LC_PROTO_RTS, p);
+  lci_pk_init(ep, LC_LONG_POOL_ID(ep), LC_PROTO_RTS, p);
   struct lci_rep* rep = &(ep->rep[rank]);
   lci_prepare_rts(src, size, cb, ce, p);
   lc_server_sendm(ep->server, rep->handle,
@@ -20,7 +27,7 @@ lc_status lc_putl(void* src, size_t size, int rank, uintptr_t addr,
                   lc_ep ep, lc_send_cb cb, void* ce)
 {
   LC_POOL_GET_OR_RETN(ep->pkpool, p);
-  lci_pk_init(ep, -1, LC_PROTO_LONG, p);
+  lci_pk_init(ep, LC_LONG_POOL_ID(ep), LC_PROTO_LONG, p);
   p->data.rts.cb = cb;
   p->data.rts.ce = (uintptr_t) ce;
 
@@ -34,7 +41,7 @@ lc_status lc_putls(void* src, size_t size, int rank, uintptr_t addr, int meta,
                    lc_ep ep, lc_send_cb cb, void* ce)
 {
   LC_POOL_GET_OR_RETN(ep->pkpool, p);
-  lci_pk_init(ep, -1, LC_PROTO_LONG, p);
+  lci_pk_init(ep, LC_LONG_POOL_ID(ep), LC_PROTO_LONG, p);
   p->data.rts.cb = cb;
   p->data.rts.ce = (uintptr_t) ce;
   struct lci_rep* rep = &(ep->rep[rank]);

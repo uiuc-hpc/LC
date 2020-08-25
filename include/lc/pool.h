@@ -26,7 +26,7 @@ struct dequeue;
 extern "C" {
 #endif
 
-LC_INLINE int lc_worker_id()
+LC_INLINE int lc_worker_id(void)
 {
   if (unlikely(lcg_core_id == -1)) {
     lcg_core_id = sched_getcpu();
@@ -69,7 +69,7 @@ void* lc_pool_get_nb(lc_pool* pool);
 
 #define POOL_UNINIT ((int32_t)-1)
 
-LC_INLINE int32_t lc_pool_get_local(struct lc_pool* pool)
+LC_INLINE int32_t lc_pool_get_local_id(struct lc_pool* pool)
 {
   int wid = lc_worker_id();
   int32_t pid = tls_pool_struct[wid][pool->key];
@@ -90,47 +90,64 @@ LC_INLINE int32_t lc_pool_get_local(struct lc_pool* pool)
   return pid;
 }
 
-LC_INLINE void* lc_pool_get_slow(struct lc_pool* pool) {
+LC_INLINE int32_t lc_pool_get_steal_id(int32_t npools, int32_t pid)
+{
+  if (npools == 1)
+    return -1; /* if only one pool, no one else to steal from */
+  int32_t r = rand() % (npools - 1);
+  return (r + pid + 1) % npools;
+}
+
+LC_INLINE void* lc_pool_steal_from(struct lc_pool* pool, int32_t pid)
+{
   void* elm = NULL;
-  while (!elm) {
-    int steal = rand() % (pool->npools);
-    if (likely(pool->lpools[steal] != NULL))
-      elm = dq_pop_bot(pool->lpools[steal]);
-  }
+  if (likely(pool->lpools[pid] != NULL))
+    elm = dq_pop_bot(pool->lpools[pid]);
   return elm;
 }
 
-LC_INLINE void lc_pool_put(struct lc_pool* pool, void* elm) {
-  int32_t pid = lc_pool_get_local(pool);
+LC_INLINE void* lc_pool_steal(struct lc_pool* pool, int32_t pid)
+{
+  void* elm = NULL;
+  int32_t target = lc_pool_get_steal_id(pool->npools, pid);
+  if (target != -1)
+    elm = lc_pool_steal_from(pool, target);
+  return elm;
+}
+
+LC_INLINE void lc_pool_put_to(struct lc_pool* pool, void* elm, int32_t pid)
+{
   struct dequeue* lpool = pool->lpools[pid];
   dq_push_top(lpool, elm);
 }
 
-LC_INLINE void lc_pool_put_to(struct lc_pool* pool, void* elm, int32_t pid) {
-  struct dequeue* lpool = pool->lpools[pid];
-  dq_push_top(lpool, elm);
+LC_INLINE void lc_pool_put(struct lc_pool* pool, void* elm)
+{
+  int32_t pid = lc_pool_get_local_id(pool);
+  lc_pool_put_to(pool, elm, pid);
 }
 
-LC_INLINE void* lc_pool_get(struct lc_pool* pool) {
-  int32_t pid = lc_pool_get_local(pool);
+LC_INLINE void* lc_pool_get_nb(struct lc_pool* pool)
+{
+  int32_t pid = lc_pool_get_local_id(pool);
   struct dequeue* lpool = pool->lpools[pid];
-  void *elm = NULL;
-  elm = dq_pop_top(lpool);
+  void* elm = dq_pop_top(lpool);
   if (elm == NULL)
-    elm = lc_pool_get_slow(pool);
+    elm = lc_pool_steal(pool, pid);
   return elm;
 }
 
-LC_INLINE void* lc_pool_get_nb(struct lc_pool* pool) {
-  int32_t pid = lc_pool_get_local(pool);
+LC_INLINE void* lc_pool_get(struct lc_pool* pool)
+{
+  int32_t pid = lc_pool_get_local_id(pool);
   struct dequeue* lpool = pool->lpools[pid];
   void* elm = NULL;
-  elm = dq_pop_top(lpool);
-  if (elm == NULL) {
-    int steal = rand() % (pool->npools);
-    if (likely(pool->lpools[steal] != NULL))
-      elm = dq_pop_bot(pool->lpools[steal]);
-  }
+  do {
+    /* must try self every iteration since we never steal from self */
+    elm = dq_pop_top(lpool);
+    if (elm == NULL)
+      elm = lc_pool_steal(pool, pid);
+  } while (elm == NULL);
   return elm;
 }
 

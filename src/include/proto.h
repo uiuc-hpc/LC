@@ -109,7 +109,7 @@ static inline void lci_ce_queue(lc_ep ep, lc_packet* p)
 static inline void lci_handle_rtr(struct lci_ep* ep, lc_packet* p)
 {
   dprintf("Recv RTR %p\n", p);
-  lci_pk_init(ep, -1, LC_PROTO_LONG, p);
+  lci_pk_init(ep, p->context.poolid, LC_PROTO_LONG, p);
   // dprintf("%d] rma %p --> %p %.4x via %d\n", lcg_rank, p->data.rts.src_addr, p->data.rtr.tgt_addr, crc32c((char*) p->data.rts.src_addr, p->data.rts.size), p->data.rtr.rkey);
 
   lc_server_rma_rtr(ep->server, p->context.req->rhandle,
@@ -121,7 +121,7 @@ static inline void lci_handle_rtr(struct lci_ep* ep, lc_packet* p)
 static inline void lci_handle_rts(struct lci_ep* ep, lc_packet* p)
 {
   dprintf("Recv RTS: %p\n", p);
-  lci_pk_init(ep, -1, LC_PROTO_RTR, p);
+  lci_pk_init(ep, p->context.poolid, LC_PROTO_RTR, p);
   lc_proto proto = MAKE_PROTO(ep->gid, LC_PROTO_RTR, 0);
   lci_prepare_rtr(ep, p->context.req->buffer, p->data.rts.size, p);
   lc_server_sendm(ep->server, p->context.req->rhandle,
@@ -264,10 +264,10 @@ static inline void lci_serve_send(lc_packet* p)
   } else if (proto == LC_PROTO_LONG) {
     dprintf("SENT LONG: %p\n", p);
     p->data.rts.cb((void*) p->data.rts.ce);
-    lci_pk_free(ep, p);
+    lci_pk_free_data(ep, p);
   } else if (proto == LC_PROTO_RTS) {
     dprintf("SENT RTS: %p\n", p);
-    lci_pk_free(ep, p);
+    lci_pk_free_data(ep, p);
   } else {
     dprintf("SENT UNKNOWN: %p\n", p);
     lci_pk_free_data(ep, p);

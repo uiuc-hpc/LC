@@ -292,7 +292,10 @@ static inline int lc_server_progress(lc_server* s)
         lci_serve_recv_rdma(p, status.msg_tag.tag1);
       } else {
         p->context.req = &p->context.req_s;
-        lc_pool_put(s->pkpool, p);
+        if (p->context.poolid != -1)
+          lc_pool_put_to(s->pkpool, p, p->context.poolid);
+        else
+          lc_pool_put(s->pkpool, p);
       }
     } else if (ctx & PSM_SEND) {
       lc_packet* p = (lc_packet*) (ctx ^ PSM_SEND);
@@ -318,6 +321,7 @@ static inline void lc_server_post_recv(lc_server* s, lc_packet* p)
   }
 
   psm2_mq_tag_t rtag = PSM_TAG_TRECV_DATA();
+  p->context.poolid = lc_pool_get_local_id(s->pkpool);
 
   PSM_SAFECALL(psm2_mq_irecv2(
       s->mq, PSM2_MQ_ANY_ADDR, &rtag,                       /* message tag */

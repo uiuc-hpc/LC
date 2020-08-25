@@ -14,6 +14,6 @@ lc_status lc_cq_pop(lc_ep ep, lc_req** req_ptr)
 lc_status lc_cq_reqfree(lc_ep ep, lc_req* req)
 {
   lc_packet* packet = (lc_packet*) req->parent;
-  lc_pool_put(ep->pkpool, packet);
+  lci_pk_free_data(ep, packet);
   return LC_OK;
 }
