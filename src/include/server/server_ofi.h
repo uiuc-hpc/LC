@@ -15,7 +15,6 @@
 #include <rdma/fi_errno.h>
 #include <rdma/fi_rma.h>
 
-#ifdef LCI_DEBUG
 #define FI_SAFECALL(x)                                                    \
   {                                                                       \
     int err = (x);                                                        \
@@ -27,13 +26,6 @@
   }                                                                       \
   while (0)                                                               \
     ;
-
-#else
-#define FI_SAFECALL(x) \
-  {                    \
-    (x);               \
-  }
-#endif
 
 typedef struct LCISI_server_t {
   LCI_device_t device;
@@ -184,7 +176,11 @@ static inline LCI_error_t lc_server_sends(LCIS_server_t s, int rank, void* buf,
                            LCI_RANK /*tag*/);
   if (ret == FI_SUCCESS) return LCI_OK;
   else if (ret == -FI_EAGAIN) return LCI_ERR_RETRY;
-  else FI_SAFECALL(ret);
+  else {
+    LCM_Assert(false, "err %d : %s (%s:%d)\n",
+               ret, fi_strerror(ret), __FILE__, __LINE__);
+    return LCI_ERR_FATAL;
+  }
 }
 
 static inline LCI_error_t lc_server_send(LCIS_server_t s, int rank, void* buf,
@@ -200,7 +196,11 @@ static inline LCI_error_t lc_server_send(LCIS_server_t s, int rank, void* buf,
                          (struct fi_context*)ctx);
   if (ret == FI_SUCCESS) return LCI_OK;
   else if (ret == -FI_EAGAIN) return LCI_ERR_RETRY;
-  else FI_SAFECALL(ret);
+  else {
+    LCM_Assert(false, "err %d : %s (%s:%d)\n",
+               ret, fi_strerror(ret), __FILE__, __LINE__);
+    return LCI_ERR_FATAL;
+  }
 }
 
 static inline LCI_error_t lc_server_puts(LCIS_server_t s, int rank, void* buf,
@@ -220,7 +220,11 @@ static inline LCI_error_t lc_server_puts(LCIS_server_t s, int rank, void* buf,
   int ret = fi_inject_write(server->ep, buf, size, server->peer_addrs[rank], addr, rkey);
   if (ret == FI_SUCCESS) return LCI_OK;
   else if (ret == -FI_EAGAIN) return LCI_ERR_RETRY;
-  else FI_SAFECALL(ret);
+  else {
+    LCM_Assert(false, "err %d : %s (%s:%d)\n",
+               ret, fi_strerror(ret), __FILE__, __LINE__);
+    return LCI_ERR_FATAL;
+  }
 }
 
 static inline LCI_error_t lc_server_put(LCIS_server_t s, int rank, void* buf,
@@ -242,7 +246,11 @@ static inline LCI_error_t lc_server_put(LCIS_server_t s, int rank, void* buf,
                          server->peer_addrs[rank], addr, rkey, ctx);
   if (ret == FI_SUCCESS) return LCI_OK;
   else if (ret == -FI_EAGAIN) return LCI_ERR_RETRY;
-  else FI_SAFECALL(ret);
+  else {
+    LCM_Assert(false, "err %d : %s (%s:%d)\n",
+               ret, fi_strerror(ret), __FILE__, __LINE__);
+    return LCI_ERR_FATAL;
+  }
 }
 
 static inline LCI_error_t lc_server_putImms(LCIS_server_t s, int rank, void* buf,
@@ -263,7 +271,11 @@ static inline LCI_error_t lc_server_putImms(LCIS_server_t s, int rank, void* buf
   int ret = fi_inject_writedata(server->ep, buf, size, meta, server->peer_addrs[rank], addr, rkey);
   if (ret == FI_SUCCESS) return LCI_OK;
   else if (ret == -FI_EAGAIN) return LCI_ERR_RETRY;
-  else FI_SAFECALL(ret);
+  else {
+    LCM_Assert(false, "err %d : %s (%s:%d)\n",
+               ret, fi_strerror(ret), __FILE__, __LINE__);
+    return LCI_ERR_FATAL;
+  }
 }
 
 static inline LCI_error_t lc_server_putImm(LCIS_server_t s, int rank, void* buf,
@@ -286,7 +298,11 @@ static inline LCI_error_t lc_server_putImm(LCIS_server_t s, int rank, void* buf,
                          server->peer_addrs[rank], addr, rkey, ctx);
   if (ret == FI_SUCCESS) return LCI_OK;
   else if (ret == -FI_EAGAIN) return LCI_ERR_RETRY;
-  else FI_SAFECALL(ret);
+  else {
+    LCM_Assert(false, "err %d : %s (%s:%d)\n",
+               ret, fi_strerror(ret), __FILE__, __LINE__);
+    return LCI_ERR_FATAL;
+  }
 }
 
 

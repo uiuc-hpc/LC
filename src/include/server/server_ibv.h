@@ -9,7 +9,6 @@
 #include "dreg.h"
 #endif
 
-#ifdef LCI_DEBUG
 #define IBV_SAFECALL(x)                                               \
   {                                                                   \
     int err = (x);                                                    \
@@ -20,14 +19,6 @@
   }                                                                   \
   while (0)                                                           \
     ;
-#else
-#define IBV_SAFECALL(x) \
-  {                     \
-    x;                  \
-  }                     \
-  while (0)             \
-    ;
-#endif
 
 typedef struct LCISI_server_t {
   LCI_device_t device;
@@ -204,7 +195,11 @@ static inline LCI_error_t lc_server_sends(LCIS_server_t s, int rank, void* buf,
   int ret = ibv_post_send(server->qps[rank], &wr, &bad_wr);
   if (ret == 0) return LCI_OK;
   else if (ret == ENOMEM) return LCI_ERR_RETRY; // exceed send queue capacity
-  else IBV_SAFECALL(ret);
+  else {
+    LCM_Assert(false, "err %d : %s (%s:%d)\n",
+               ret, strerror(ret), __FILE__, __LINE__);
+    return LCI_ERR_FATAL;
+  }
 }
 
 static inline LCI_error_t lc_server_send(LCIS_server_t s, int rank, void* buf,
@@ -235,7 +230,11 @@ static inline LCI_error_t lc_server_send(LCIS_server_t s, int rank, void* buf,
   int ret = ibv_post_send(server->qps[rank], &wr, &bad_wr);
   if (ret == 0) return LCI_OK;
   else if (ret == ENOMEM) return LCI_ERR_RETRY; // exceed send queue capacity
-  else IBV_SAFECALL(ret);
+  else {
+    LCM_Assert(false, "err %d : %s (%s:%d)\n",
+               ret, strerror(ret), __FILE__, __LINE__);
+    return LCI_ERR_FATAL;
+  }
 }
 
 static inline LCI_error_t lc_server_puts(LCIS_server_t s, int rank, void* buf,
@@ -266,7 +265,11 @@ static inline LCI_error_t lc_server_puts(LCIS_server_t s, int rank, void* buf,
   int ret = ibv_post_send(server->qps[rank], &wr, &bad_wr);
   if (ret == 0) return LCI_OK;
   else if (ret == ENOMEM) return LCI_ERR_RETRY; // exceed send queue capacity
-  else IBV_SAFECALL(ret);
+  else {
+    LCM_Assert(false, "err %d : %s (%s:%d)\n",
+               ret, strerror(ret), __FILE__, __LINE__);
+    return LCI_ERR_FATAL;
+  }
 }
 
 static inline LCI_error_t lc_server_put(LCIS_server_t s, int rank, void* buf,
@@ -299,7 +302,11 @@ static inline LCI_error_t lc_server_put(LCIS_server_t s, int rank, void* buf,
   int ret = ibv_post_send(server->qps[rank], &wr, &bad_wr);
   if (ret == 0) return LCI_OK;
   else if (ret == ENOMEM) return LCI_ERR_RETRY; // exceed send queue capacity
-  else IBV_SAFECALL(ret);
+  else {
+    LCM_Assert(false, "err %d : %s (%s:%d)\n",
+               ret, strerror(ret), __FILE__, __LINE__);
+    return LCI_ERR_FATAL;
+  }
 }
 
 static inline LCI_error_t lc_server_putImms(LCIS_server_t s, int rank, void* buf,
@@ -331,7 +338,11 @@ static inline LCI_error_t lc_server_putImms(LCIS_server_t s, int rank, void* buf
   int ret = ibv_post_send(server->qps[rank], &wr, &bad_wr);
   if (ret == 0) return LCI_OK;
   else if (ret == ENOMEM) return LCI_ERR_RETRY; // exceed send queue capacity
-  else IBV_SAFECALL(ret);
+  else {
+    LCM_Assert(false, "err %d : %s (%s:%d)\n",
+               ret, strerror(ret), __FILE__, __LINE__);
+    return LCI_ERR_FATAL;
+  }
 }
 
 static inline LCI_error_t lc_server_putImm(LCIS_server_t s, int rank, void* buf,
@@ -365,7 +376,11 @@ static inline LCI_error_t lc_server_putImm(LCIS_server_t s, int rank, void* buf,
   int ret = ibv_post_send(server->qps[rank], &wr, &bad_wr);
   if (ret == 0) return LCI_OK;
   else if (ret == ENOMEM) return LCI_ERR_RETRY; // exceed send queue capacity
-  else IBV_SAFECALL(ret);
+  else {
+    LCM_Assert(false, "err %d : %s (%s:%d)\n",
+               ret, strerror(ret), __FILE__, __LINE__);
+    return LCI_ERR_FATAL;
+  }
 }
 
 #endif
