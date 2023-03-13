@@ -86,14 +86,17 @@ endif
 
 ifeq ($(LCI_SERVER), ofi)
 	CFLAGS += -DLCI_USE_SERVER_OFI -DAFF_DEBUG
+	LDFLAGS += -lfabric
 endif
 
 ifeq ($(LCI_SERVER), ibv)
 	CFLAGS += -DLCI_USE_SERVER_IBV -DAFF_DEBUG -I$(IBV_DIR)/include
+	LDFLAGS += -L$(IBV_DIR)/lib -libverbs
 endif
 
 ifeq ($(LCI_SERVER), psm)
 	CFLAGS += -DLCI_USE_SERVER_PSM -DAFF_DEBUG -I$(PSM_DIR)/include
+	LDFLAGS += -L$(PSM_DIR)/lib -lpsm2
 endif
 
 SYNC_FLAG = sync_flag.o
@@ -118,19 +121,22 @@ LIBOBJ += $(OBJECTS) $(addprefix $(OBJDIR)/, $(FCONTEXT)) $(addprefix $(OBJDIR)/
 
 LIBRARY = liblci.so
 ARCHIVE = liblci.a
+PKGCONFIG = liblci.pc
 
 all: $(LIBRARY) $(ARCHIVE)
 
 install: all
 	mkdir -p $(PREFIX)/bin
 	mkdir -p $(PREFIX)/lib
+	mkdir -p $(PREFIX)/lib/pkgconfig
 	mkdir -p $(PREFIX)/include
 	cp lcrun $(PREFIX)/bin
 	cp -R include/* $(PREFIX)/include
-	cp liblwci.a $(PREFIX)/lib
-	cp liblwci.so $(PREFIX)/lib
+	cp $(ARCHIVE) $(PREFIX)/lib
+	cp $(LIBRARY) $(PREFIX)/lib
+	cp $(PKGCONFIG) $(PREFIX)/lib/pkgconfig
 
-$(OBJDIR)/%.o: $(SRCDIR)/$(notdir %.c)
+$(OBJDIR)/%.o: $(SRCDIR)/$(notdir %.c) $(SRCDIR)/include/config.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(LIBRARY): $(LIBOBJ)
@@ -141,12 +147,15 @@ $(ARCHIVE): $(LIBOBJ)
 	$(AR) q $(ARCHIVE) $(LIBOBJ) $(MALLOC)
 	$(RANLIB) $(ARCHIVE)
 
+$(SRCDIR)/include/config.h:: $(SRCDIR)/include/config.h.mk
+	cp $< $@
+
 mpiv.a: obj/mpiv.o
 	$(AR) q mpiv.a obj/mpiv.o $(LIBOBJ)
 	$(RANLIB) mpiv.a
 
 clean:
-	rm -rf $(LIBOBJ) $(OBJDIR)/* liblwci.a liblwci.so mpiv.a
+	rm -rf $(LIBOBJ) $(OBJDIR)/* $(SRCDIR)/include/config.h $(ARCHIVE) $(LIBRARY) mpiv.a
 	$(MAKE) clean -C examples
 	$(MAKE) clean -C benchmarks
 

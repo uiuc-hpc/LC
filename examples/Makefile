@@ -3,7 +3,7 @@ FULT=$(WORK)/fult
 
 CC = gcc
 LD = $(CC)
-TARGET = init pt2pti pt2ptbc pt2ptd pt2ptiq puti # tshort tmed tlong qshort qmed qlong
+TARGET = init pt2pti pt2ptbc pt2ptd pt2ptiq puti putb putbc # tshort tmed tlong qshort qmed qlong
 
 EXTRA = -DUSE_AFFI
 
@@ -16,7 +16,7 @@ LDFLAGS += -O3 -Wl,-rpath=$(abspath ../) -Wl,-z,now -Wl,-z,relro -pthread
 LIB = ../liblci.a
 LIB_MPIV = ../mpiv.a
 
-LDFLAGS += -L$(HOME)/libpsm2/usr/lib64 -lpsm2 -L$(HOME)/libfab/lib -lfabric
+#LDFLAGS += -L$(HOME)/libpsm2/usr/lib64 -lpsm2 -L$(HOME)/libfab/lib -lfabric
 LDFLAGS += -libverbs
 
 CXXFLAGS = -g3 -O3 -std=c++11

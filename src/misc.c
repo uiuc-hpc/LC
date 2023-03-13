@@ -1,3 +1,4 @@
+#include "config.h"
 #include "lci.h"
 #include "lci_priv.h"
 

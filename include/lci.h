@@ -24,37 +24,37 @@ extern "C" {
 /**
  * The maximum size of a buffer that can be used in immediate protocol.
  */
-int LCI_IMMEDIATE_LENGTH;
+extern int LCI_IMMEDIATE_LENGTH;
 
 /**
  * The maximum size of a buffer that can be used in buffered protocol.
  */
-int LCI_BUFFERED_LENGTH;
+extern int LCI_BUFFERED_LENGTH;
 
 /**
  * The number of devices created intially.
  */
-int LCI_NUM_DEVICES;
+extern int LCI_NUM_DEVICES;
 
 /**
  * The number of endpoints that can be created.
  */
-int LCI_NUM_ENDPOINTS;
+extern int LCI_NUM_ENDPOINTS;
 
 /**
  * The number of processes in this job.
  */
-int LCI_NUM_PROCESSES;
+extern int LCI_NUM_PROCESSES;
 
 /**
  * The rank of the current process w.r.t the job.
  */
-int LCI_RANK;
+extern int LCI_RANK;
 
 /**
  * The amount of pre-registered memory for a device dedicated for communciation.
  */
-int LCI_REGISTERED_MEMORY_SIZE;
+extern int LCI_REGISTERED_MEMORY_SIZE;
 
 /**@}*/
 
@@ -71,6 +71,15 @@ typedef enum {
   LCI_ERR_RETRY,
   LCI_ERR_FATAL,
 } LCI_error_t;
+
+/**
+ * LCI Initialization Status type.
+ */
+typedef enum {
+  LCI_NOT_INITIALIZED = 0,
+  LCI_INIT_COMPLETED,
+  LCI_FINALIZE_COMPLETED
+} LCI_status_t; 
 
 /**
  * LCI Communication type.
@@ -214,6 +223,18 @@ LCI_error_t LCI_initialize(int* argc, char*** args);
  */
 LCI_API
 LCI_error_t LCI_finalize();
+
+/**
+ * Check LCI initialization.
+ */
+LCI_API
+LCI_error_t LCI_initialized(int* flag);
+
+/**
+ * Check LCI finalization.
+ */
+LCI_API
+LCI_error_t LCI_finalized(int*flag);
 
 /**
  * Create an endpoint Property @plist.
@@ -381,6 +402,7 @@ LCI_error_t LCI_putbc(LCI_bbuffer_t src, size_t size, int rank, int rma_id, int 
  * Put medium message to a remote address @rma_id available at the remote
  * endpoint, offset @offset. User must wait for sync or retry if LCI_ERR_RETRY is returned.
  */
+LCI_API
 LCI_error_t LCI_putb(LCI_bbuffer_t buffer, size_t size, int rank, uint16_t tag,
                      LCI_endpoint_t ep, void* sync);
 
@@ -435,11 +457,13 @@ LCI_error_t LCI_request_free(LCI_endpoint_t ep, int n, LCI_request_t** req);
 /**
  * Create a matching hash-table.
  */
+LCI_API
 LCI_error_t LCI_MT_create(uint32_t length, LCI_MT_t* mt);
 
 /**
  * Destroy the matching hash-table.
  */
+LCI_API
 LCI_error_t LCI_MT_free(LCI_MT_t* mt);
 
 /**

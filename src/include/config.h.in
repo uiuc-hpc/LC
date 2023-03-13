@@ -1,0 +1,34 @@
+#ifndef CONFIG_H_
+#define CONFIG_H_
+
+#cmakedefine LCI_SERVER_DEBUG
+
+#cmakedefine LCI_USE_SERVER_OFI
+#cmakedefine LCI_USE_SERVER_IBV
+#cmakedefine LCI_USE_SERVER_PSM
+
+#cmakedefine LCI_SERVER_HAS_DYN
+#cmakedefine LCI_SERVER_HAS_EXP
+#cmakedefine LCI_SERVER_HAS_IMM
+
+#cmakedefine LCI_SERVER_HAS_SYNC
+#cmakedefine LCI_SERVER_HAS_CQ
+#cmakedefine LCI_SERVER_HAS_AM
+#cmakedefine LCI_SERVER_HAS_GLOB
+
+#cmakedefine USE_DREG
+#cmakedefine LCI_USE_PMI2
+
+#define LCI_MAX_DEV         @LCI_MAX_DEV@
+#define LCI_MAX_EP          @LCI_MAX_EP@
+
+#define LC_PACKET_SIZE     @LCI_PACKET_SIZE@
+
+#define LC_MAX_INLINE      @LCI_MAX_INLINE@
+#define LC_DEV_MEM_SIZE    @LCI_DEV_MEM_SIZE@
+
+#define LC_SERVER_MAX_RCVS @LCI_SERVER_MAX_RCVS@
+#define LC_SERVER_NUM_PKTS @LCI_SERVER_NUM_PKTS@
+#define LC_CACHE_LINE      @LCI_CACHE_LINE@
+
+#endif

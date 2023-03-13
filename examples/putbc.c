@@ -31,9 +31,9 @@ int main(int argc, char** args) {
   int base_offset = 64 * 1024;
   addr = LCI_get_base_addr(0) + base_offset;
 
-  LCI_sendi(&addr,  sizeof(uintptr_t), 1-rank, 0, ep);
+  LCI_sendi(addr, 1-rank, 0, ep);
   LCI_one2one_set_empty(&sync);
-  LCI_recvi(&raddr, sizeof(uintptr_t), 1-rank, 0, ep, &sync);
+  LCI_recvi(&raddr, 1-rank, 0, ep, &sync);
   while (LCI_one2one_test_empty(&sync)) {
     LCI_progress(0, 1);
   }

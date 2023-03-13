@@ -1,6 +1,8 @@
 #ifndef SERVER_OFI_H_
 #define SERVER_OFI_H_
 
+#include "config.h"
+
 #include <rdma/fabric.h>
 #include <rdma/fi_domain.h>
 #include <rdma/fi_endpoint.h>
@@ -13,9 +15,9 @@
 #include <rdma/fi_rma.h>
 
 #include "config.h"
-#include "lc/macro.h"
+#include "macro.h"
 #include "pm.h"
-#include "dreg/dreg.h"
+#include "dreg.h"
 
 #define SERVER_FI_DEBUG
 
@@ -138,6 +140,13 @@ static inline void lc_server_init(int id, lc_server** dev)
   s->heap_rkey = fi_mr_key(s->mr_heap);
   s->id = id;
 
+  struct fi_av_attr av_attr;
+  memset(&av_attr, 0, sizeof(av_attr));
+  av_attr.type = FI_AV_MAP;
+  FI_SAFECALL(fi_av_open(s->domain, &av_attr, &s->av, NULL));
+  FI_SAFECALL(fi_ep_bind(s->ep, (fid_t)s->av, 0));
+  FI_SAFECALL(fi_enable(s->ep));
+
   // Now exchange end-point address and heap address.
   size_t addrlen = 0;
   fi_getname((fid_t)s->ep, NULL, &addrlen);
@@ -150,19 +159,13 @@ static inline void lc_server_init(int id, lc_server** dev)
 
   s->fi_addr = malloc(sizeof(fi_addr_t) * LCI_NUM_PROCESSES);
 
-  struct fi_av_attr av_attr;
-  memset(&av_attr, 0, sizeof(av_attr));
-  av_attr.type = FI_AV_MAP;
-  FI_SAFECALL(fi_av_open(s->domain, &av_attr, &s->av, NULL));
-  FI_SAFECALL(fi_ep_bind(s->ep, (fid_t)s->av, 0));
-  FI_SAFECALL(fi_enable(s->ep));
-
   posix_memalign((void**)&(s->rep), LC_CACHE_LINE,
                  sizeof(struct lc_rep) * LCI_NUM_PROCESSES);
   char tmp[256];
-  printf("%d\n", addrlen);
+//  printf("%d\n", addrlen);
   sprintf(tmp, "%llu-%llu-%llu", ((unsigned long long*)addr)[0],
       ((unsigned long long*) addr)[1], (unsigned long long) myaddr);
+  free(addr);
   lc_pm_publish(LCI_RANK, id, tmp);
 
   for (int i = 0; i < LCI_NUM_PROCESSES; i++) {

@@ -1,6 +1,8 @@
 #ifndef LC_PROTO_H
 #define LC_PROTO_H
 
+#include "config.h"
+
 #include "lci.h"
 #include "debug.h"
 #include "cq.h"

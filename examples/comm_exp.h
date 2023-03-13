@@ -19,14 +19,14 @@
 #define DEFAULT_NUM_WORKER 4
 #define DEFAULT_NUM_THREAD 4
 
-inline double wtime()
+static inline double wtime(void)
 {
   struct timeval t1;
   gettimeofday(&t1, 0);
   return t1.tv_sec + t1.tv_usec / 1e6;
 }
 
-inline double wutime()
+static inline double wutime(void)
 {
   struct timeval t1;
   gettimeofday(&t1, 0);
@@ -35,7 +35,7 @@ inline double wutime()
 
 #define max(a, b) ((a > b) ? (a) : (b))
 
-static inline unsigned long long get_rdtsc()
+static inline unsigned long long get_rdtsc(void)
 {
   unsigned hi, lo;
   __asm__ __volatile__("rdtsc" : "=a"(lo), "=d"(hi));

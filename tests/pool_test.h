@@ -1,4 +1,4 @@
-#include "lc/pool.h"
+#include "pool.h"
 
 TEST(POOL, InitFini)
 {
@@ -14,8 +14,8 @@ TEST(POOL, Put)
   lc_pool_create(&h);
   lc_pool_put(h, (void*)1);
   lc_pool_put(h, (void*)2);
-  ASSERT_EQ(lc_pool_get(h), (void*)1);
   ASSERT_EQ(lc_pool_get(h), (void*)2);
+  ASSERT_EQ(lc_pool_get(h), (void*)1);
   lc_pool_destroy(h);
 }
 
@@ -25,8 +25,8 @@ TEST(POOL, PutTo)
   lc_pool_create(&h);
   lc_pool_put(h, (void*)1);
   lc_pool_put_to(h, (void*)2, 0);
-  ASSERT_EQ(lc_pool_get(h), (void*)1);
   ASSERT_EQ(lc_pool_get(h), (void*)2);
+  ASSERT_EQ(lc_pool_get(h), (void*)1);
   lc_pool_destroy(h);
 }
 

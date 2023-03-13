@@ -7,6 +7,14 @@
 #ifndef PMI_H_INCLUDED
 #define PMI_H_INCLUDED
 
+#ifdef USE_PMI2_API
+#error This header file defines the PMI v1 API, but PMI2 was selected
+#endif
+
+#ifdef LCI_USE_PMI2
+#error This header file defines the PMI v1 API, but PMI2 was selected
+#endif
+
 #define USE_PMI_PORT
 
 /* prototypes for the PMI interface in MPICH */

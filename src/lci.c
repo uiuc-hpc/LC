@@ -4,6 +4,7 @@
 
 lc_server** LCI_DEVICES;
 LCI_endpoint_t* LCI_ENDPOINTS;
+LCI_status_t LCI_INIT_STATUS = LCI_NOT_INITIALIZED;
 
 char lcg_name[64];
 int lcg_current_id = 0; int lcg_deadlock = 0;
@@ -24,6 +25,7 @@ LCI_error_t LCI_initialize(int* argc, char*** args)
   for (int i = 0; i < LCI_NUM_DEVICES; i++) {
     lc_dev_init(i, &LCI_DEVICES[i]);
   }
+  LCI_INIT_STATUS = LCI_INIT_COMPLETED;
   return LCI_OK;
 }
 
@@ -32,7 +34,23 @@ LCI_error_t LCI_finalize()
   for (int i = 0; i < LCI_NUM_DEVICES; i++) {
     lc_dev_finalize(LCI_DEVICES[i]);
   }
-  // LCI_PM_barrier();
+  LCI_PM_barrier();
+  lc_pm_finalize();
+  LCI_INIT_STATUS = LCI_FINALIZE_COMPLETED;
+  return LCI_OK;
+}
+
+
+LCI_error_t LCI_initialized(int* flag)
+{
+  *flag = (LCI_INIT_STATUS >= LCI_INIT_COMPLETED);
+  return LCI_OK;
+}
+
+
+LCI_error_t LCI_finalized(int* flag)
+{
+  *flag = (LCI_INIT_STATUS >= LCI_FINALIZE_COMPLETED);
   return LCI_OK;
 }
 
@@ -99,4 +117,8 @@ LCI_error_t LCI_bbuffer_free(LCI_bbuffer_t buffer, int device_id)
   lc_packet* packet = LC_PACKET_OF(buffer);
   lc_pool_put(LCI_DEVICES[device_id]->pkpool, packet);
   return LCI_OK;
+}
+
+void LCI_PM_barrier() {
+  lc_pm_barrier();
 }

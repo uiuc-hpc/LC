@@ -35,7 +35,7 @@
 /* #define DBG_PRINTF(args) printf args ; fflush(stdout) */
 #define DBG_PRINTF(args)
 
-#include "pmi.h"
+#include "../include/pmi.h"
 #include "simple_pmiutil.h"
 
 /*

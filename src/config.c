@@ -2,6 +2,14 @@
 #include "lci_priv.h"
 #include "config.h"
 
+LCI_API int LCI_IMMEDIATE_LENGTH;
+LCI_API int LCI_BUFFERED_LENGTH;
+LCI_API int LCI_NUM_DEVICES;
+LCI_API int LCI_NUM_ENDPOINTS;
+LCI_API int LCI_NUM_PROCESSES;
+LCI_API int LCI_RANK;
+LCI_API int LCI_REGISTERED_MEMORY_SIZE;
+
 static inline int getenv_or(char* env, int def) {
   char* val = getenv(env);
   if (val != NULL) {

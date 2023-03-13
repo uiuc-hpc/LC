@@ -1,6 +1,8 @@
 #ifndef SERVER_IBV_H_
 #define SERVER_IBV_H_
 
+#include "config.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include "infiniband/verbs.h"
@@ -450,7 +452,7 @@ static inline void lc_server_init(int id, lc_server** dev)
 #ifdef USE_DREG
   dreg_init();
 #endif
-  PMI_Barrier();
+  lc_pm_barrier();
 }
 
 static inline void lc_server_finalize(lc_server* s)
@@ -458,7 +460,6 @@ static inline void lc_server_finalize(lc_server* s)
   ibv_destroy_cq(s->send_cq);
   ibv_destroy_cq(s->recv_cq);
   ibv_destroy_srq(s->dev_srq);
-  PMI_Finalize();
   free(s);
 }
 

@@ -1,6 +1,8 @@
 #ifndef SERVER_PSM_H_
 #define SERVER_PSM_H_
 
+#include "config.h"
+
 #include <psm2.h>    /* required for core PSM2 functions */
 #include <psm2_mq.h> /* required for PSM2 MQ functions (send, recv, etc) */
 #include <psm2_am.h>

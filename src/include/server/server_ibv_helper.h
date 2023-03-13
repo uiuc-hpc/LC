@@ -1,3 +1,5 @@
+#include "config.h"
+
 #define ALIGNMENT (8192)
 #define MAX_CQ 16
 

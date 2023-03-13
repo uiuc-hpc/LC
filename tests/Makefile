@@ -1,8 +1,8 @@
 GTEST_DIR = ./googletest/googletest/
 GTEST_FLAGS = -std=c++11 -isystem ${GTEST_DIR}/include -I${GTEST_DIR} -pthread -O3
 
-LC_FLAGS = -I../include
-LC_LINK = ../liblwci.a -libverbs
+LC_FLAGS = -I../include -I../src/include
+LC_LINK = ../liblci.a -libverbs
 
 GXX = g++
 

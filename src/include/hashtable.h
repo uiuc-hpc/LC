@@ -89,6 +89,11 @@ static inline struct lc_hash* create_table(size_t num_rows)
   return ret;
 }
 
+static inline void free_table(struct lc_hash* p)
+{
+  free(p);
+}
+
 static inline int lc_hash_insert(struct lc_hash* h, lc_key key, lc_value* value,
                                  enum insert_type type)
 {

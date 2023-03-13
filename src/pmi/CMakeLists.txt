@@ -1,0 +1,5 @@
+if(LCI_USE_PMI2)
+    add_subdirectory(pmi2)
+else()
+    add_subdirectory(pmi1)
+endif()

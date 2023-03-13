@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
+
+Name: liblci
+Description: The LCI library
+Version: @CMAKE_PROJECT_VERSION@
+Requires.private: @PKGCONFIG_REQUIRES_PRIVATE@
+Cflags: -I${includedir}
+Libs: -L${libdir} -llci
+Libs.private: @PKGCONFIG_LIBS_PRIVATE@

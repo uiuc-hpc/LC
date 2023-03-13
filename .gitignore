@@ -27,6 +27,12 @@
 *.out
 *.app
 
+# CLion related
+.idea
+cmake-build-*
+
 results
 errors
 *_test
+build-*/
+code_doc/
