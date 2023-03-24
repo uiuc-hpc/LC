@@ -1,0 +1,8 @@
+<map id="Lightweight Communication Interface (LCI) API" name="Lightweight Communication Interface (LCI) API">
+<area shape="rect" id="node1" href="$d1/d7f/group___l_c_i___s_e_t_u_p.html" title="Setup the communication resources and configurations." alt="" coords="284,5,453,31"/>
+<area shape="rect" id="node2" href="$d1/dd7/group___l_c_i___c_o_m_m.html" title="Communication operations to send and receive messages across processes." alt="" coords="259,55,479,80"/>
+<area shape="rect" id="node3" href="$dd/db9/group___l_c_i___c_o_m_p.html" title="The LCI runtime notifies users about the completion of an asynchronous operations (e...." alt="" coords="265,104,472,129"/>
+<area shape="rect" id="node4" href="$d8/dbc/group___l_c_i___m_e_m.html" title="Management for memory buffers registered to the network." alt="" coords="273,153,465,179"/>
+<area shape="rect" id="node5" title="This section describes LCI API." alt="" coords="5,97,211,137"/>
+<area shape="rect" id="node6" href="$d7/dfb/group___l_c_i___p_r_o_g_r_e_s_s.html" title="Make progress on the background works to make sure the runtime functioning properly." alt="" coords="285,203,452,228"/>
+</map>

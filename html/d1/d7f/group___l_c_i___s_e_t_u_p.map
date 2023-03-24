@@ -1,0 +1,7 @@
+<map id="LCI environment setup" name="LCI environment setup">
+<area shape="rect" id="node1" href="$d9/d14/group___l_c_i___d_e_v_i_c_e.html" title="A device is a physical or logical resource that can be used for communication. Communications that us..." alt="" coords="494,5,583,31"/>
+<area shape="rect" id="node2" href="$d0/d9f/group___l_c_i___p_l_i_s_t.html" title="A property list is a collection of properties used to create an endpoint." alt="" coords="476,55,601,80"/>
+<area shape="rect" id="node3" title="Setup the communication resources and configurations." alt="" coords="259,55,428,80"/>
+<area shape="rect" id="node4" href="$d0/d37/group___l_c_i___e_n_d_p_o_i_n_t.html" title="Currently, a LCI endpoint is not associated with any low&#45;level communication resources,..." alt="" coords="487,104,590,129"/>
+<area shape="rect" id="node5" href="$de/d87/group___l_c_i___a_p_i.html" title="This section describes LCI API." alt="" coords="5,47,211,87"/>
+</map>

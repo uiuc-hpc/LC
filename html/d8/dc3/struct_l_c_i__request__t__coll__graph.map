@@ -1,0 +1,8 @@
+<map id="LCI_request_t" name="LCI_request_t">
+<area shape="rect" id="node1" title="Request object. Completion mechanisms will write completion information to it." alt="" coords="136,273,247,300"/>
+<area shape="rect" id="node2" href="$d5/dd1/union_l_c_i__data__t.html" title="A generic type for communication buffers." alt="" coords="146,184,237,211"/>
+<area shape="rect" id="node3" href="$d6/d21/union_l_c_i__short__t.html" title="LCI short data." alt="" coords="5,95,100,121"/>
+<area shape="rect" id="node4" href="$d6/d0a/struct_l_c_i__iovec__t.html" title="LCI iovec, which is comprised of a piggyback buffer and multiple long buffers." alt="" coords="229,95,325,121"/>
+<area shape="rect" id="node5" href="$dd/d77/struct_l_c_i__mbuffer__t.html" title="LCI medium communication buffer." alt="" coords="119,5,231,32"/>
+<area shape="rect" id="node6" href="$d2/dad/struct_l_c_i__lbuffer__t.html" title="LCI long communication buffer." alt="" coords="267,5,369,32"/>
+</map>

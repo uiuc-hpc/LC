@@ -1,0 +1,7 @@
+<map id="LCI completion mechanisms" name="LCI completion mechanisms">
+<area shape="rect" id="node1" title="The LCI runtime notifies users about the completion of an asynchronous operations (e...." alt="" coords="259,63,465,88"/>
+<area shape="rect" id="node3" href="$db/dfc/group___l_c_i___q_u_e_u_e.html" title="One of the completion mechanisms." alt="" coords="513,5,676,31"/>
+<area shape="rect" id="node4" href="$d1/da2/group___l_c_i___h_a_n_d_l_e_r.html" title="One of the completion mechanisms." alt="" coords="520,55,669,95"/>
+<area shape="rect" id="node5" href="$d4/d17/group___l_c_i___s_y_n_c.html" title="One of the completion mechanisms." alt="" coords="530,120,659,145"/>
+<area shape="rect" id="node2" href="$de/d87/group___l_c_i___a_p_i.html" title="This section describes LCI API." alt="" coords="5,55,211,95"/>
+</map>
