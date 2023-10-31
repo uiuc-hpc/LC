@@ -1,3 +1,5 @@
+#include "config.h"
+
 #define ALIGNMENT (lcg_page_size)
 #define MAX_CQ 16
 

@@ -1,0 +1,28 @@
+@PACKAGE_INIT@
+
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
+include(CMakeFindDependencyMacro)
+
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_dependency(Threads)
+find_dependency(Fabric COMPONENTS @FABRIC_PREFER@)
+
+set_and_check(LCI_INCLUDE_DIRS "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+set_and_check(LCI_SHARED_LIBRARY "@PACKAGE_CMAKE_INSTALL_LIBDIR@/@CMAKE_SHARED_LIBRARY_PREFIX@lci@CMAKE_SHARED_LIBRARY_SUFFIX@")
+set_and_check(LCI_STATIC_LIBRARY "@PACKAGE_CMAKE_INSTALL_LIBDIR@/@CMAKE_STATIC_LIBRARY_PREFIX@lci@CMAKE_STATIC_LIBRARY_SUFFIX@")
+
+add_library(LCI::Shared SHARED IMPORTED)
+set_target_properties(LCI::Shared PROPERTIES
+  IMPORTED_LOCATION ${LCI_SHARED_LIBRARY}
+)
+target_include_directories(LCI::Shared INTERFACE ${LCI_INCLUDE_DIRS})
+
+add_library(LCI::Static STATIC IMPORTED)
+set_target_properties(LCI::Static PROPERTIES
+  IMPORTED_LOCATION ${LCI_STATIC_LIBRARY}
+)
+target_include_directories(LCI::Static INTERFACE ${LCI_INCLUDE_DIRS})
+target_link_libraries(LCI::Static INTERFACE Threads::Threads Fabric::@FABRIC_PREFER@)
+
+check_required_components(LCI)

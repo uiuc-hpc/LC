@@ -1,0 +1,33 @@
+#ifndef CONFIG_H_
+#define CONFIG_H_
+
+#cmakedefine LC_SERVER_DEBUG
+
+#cmakedefine LC_USE_SERVER_OFI
+#cmakedefine LC_USE_SERVER_IBV
+#cmakedefine LC_USE_SERVER_PSM
+
+#cmakedefine LC_SERVER_HAS_DYN
+#cmakedefine LC_SERVER_HAS_EXP
+#cmakedefine LC_SERVER_HAS_IMM
+
+#cmakedefine LC_SERVER_HAS_SYNC
+#cmakedefine LC_SERVER_HAS_CQ
+#cmakedefine LC_SERVER_HAS_AM
+#cmakedefine LC_SERVER_HAS_GLOB
+
+#cmakedefine USE_DREG
+
+#define LC_MAX_DEV         @LC_MAX_DEV@
+#define LC_MAX_EP          @LC_MAX_EP@
+
+#define LC_PACKET_SIZE     @LC_PACKET_SIZE@
+
+#define LC_MAX_INLINE      @LC_MAX_INLINE@
+#define LC_DEV_MEM_SIZE    @LC_DEV_MEM_SIZE@
+
+#define LC_SERVER_MAX_RCVS @LC_SERVER_MAX_RCVS@
+#define LC_SERVER_NUM_PKTS @LC_SERVER_NUM_PKTS@
+#define LC_CACHE_LINE      @LC_CACHE_LINE@
+
+#endif

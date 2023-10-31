@@ -1,6 +1,8 @@
 #ifndef SERVER_H_
 #define SERVER_H_
 
+#include "config.h"
+
 struct lc_server;
 typedef struct lc_server lc_server;
 

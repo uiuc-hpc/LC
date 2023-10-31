@@ -11,7 +11,7 @@
 #include "config.h"
 #include "pm.h"
 #include "lc/macro.h"
-#include "include/lcrq.h"
+#include "lcrq.h"
 #include "config.h"
 
 

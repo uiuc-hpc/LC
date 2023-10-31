@@ -191,7 +191,7 @@ LC_EXPORT
 void lc_get_num_proc(int *size);
 
 LC_EXPORT
-lc_status lc_finalize();
+lc_status lc_finalize(void);
 
 LC_EXPORT
 int lc_progress(int);
@@ -209,7 +209,7 @@ LC_EXPORT
 lc_status lc_ep_get_baseaddr(lc_ep, size_t size, uintptr_t* addr);
 
 LC_EXPORT
-void lc_pm_barrier();
+void lc_pm_barrier(void);
 
 LC_EXPORT
 void lc_ialreduce(const void *sbuf, void *rbuf, size_t count, ompi_op_t op, lc_ep ep, lc_colreq* req);

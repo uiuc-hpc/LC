@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "lc.h"
 #include "pmi.h"
 #include "pm.h"
 

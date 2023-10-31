@@ -1,3 +1,4 @@
+#include "config.h"
 #include "lc.h"
 #include "lc_priv.h"
 

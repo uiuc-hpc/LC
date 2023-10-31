@@ -1,6 +1,8 @@
 #ifndef SERVER_OFI_H_
 #define SERVER_OFI_H_
 
+#include "config.h"
+
 #include <mpi.h>
 #include <rdma/fabric.h>
 #include <rdma/fi_domain.h>
@@ -13,7 +15,7 @@
 #include <rdma/fi_rma.h>
 
 #include "mv/macro.h"
-#include "dreg/dreg.h"
+#include "dreg.h"
 
 // #define SERVER_FI_DEBUG
 

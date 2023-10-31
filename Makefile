@@ -127,7 +127,7 @@ install: all
 	cp $(LIBRARY) $(PREFIX)/lib
 	cp $(PKGCONFIG) $(PREFIX)/lib/pkgconfig
 
-$(OBJDIR)/%.o: $(SRCDIR)/$(notdir %.c)
+$(OBJDIR)/%.o: $(SRCDIR)/$(notdir %.c) $(SRCDIR)/include/config.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(LIBRARY): $(LIBOBJ)
@@ -138,12 +138,15 @@ $(ARCHIVE): $(LIBOBJ)
 	$(AR) q $(ARCHIVE) $(LIBOBJ) $(MALLOC)
 	$(RANLIB) $(ARCHIVE)
 
+$(SRCDIR)/include/config.h:: $(SRCDIR)/include/config.h.mk
+	cp $< $@
+
 mpiv.a: obj/mpiv.o
 	$(AR) q mpiv.a obj/mpiv.o $(LIBOBJ)
 	$(RANLIB) mpiv.a
 
 clean:
-	rm -rf $(LIBOBJ) $(OBJDIR)/* $(ARCHIVE) $(LIBRARY) mpiv.a
+	rm -rf $(LIBOBJ) $(OBJDIR)/* $(SRCDIR)/include/config.h $(ARCHIVE) $(LIBRARY) mpiv.a
 
 tests:
 	$(MAKE) -C tests && ./tests/all_test
