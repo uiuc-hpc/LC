@@ -594,13 +594,6 @@ extern LCI_rdv_protocol_t LCI_RDV_PROTOCOL;
 
 /**
  * @ingroup LCI_COMM
- * @brief For the libfabric cxi provider, Try turning off the hacking to see
- * whether cxi has fixed the double mr_bind error.
- */
-extern bool LCI_OFI_CXI_TRY_NO_HACK;
-
-/**
- * @ingroup LCI_COMM
  * @brief For the UCX backend, use try_lock to wrap the ucx function calls.
  */
 extern bool LCI_UCX_USE_TRY_LOCK;
@@ -692,6 +685,8 @@ LCI_error_t LCI_barrier();
  */
 LCI_API
 LCI_error_t LCI_device_init(LCI_device_t* device_ptr);
+LCI_API
+LCI_error_t LCI_device_initx(LCI_device_t* device_ptr);
 /**
  * @ingroup LCI_DEVICE
  * @brief Initialize a device.

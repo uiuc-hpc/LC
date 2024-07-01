@@ -36,18 +36,14 @@
 struct LCISI_endpoint_t;
 
 typedef struct __attribute__((aligned(LCI_CACHE_LINE))) LCISI_server_t {
-  LCI_device_t device;
   struct fi_info* info;
   struct fid_fabric* fabric;
-  struct fid_domain* domain;
-  struct LCISI_endpoint_t* endpoints[LCI_SERVER_MAX_ENDPOINTS];
-  int endpoint_count;
-  bool cxi_mr_bind_hack;
 } LCISI_server_t;
 
 typedef struct __attribute__((aligned(LCI_CACHE_LINE))) LCISI_endpoint_t {
   struct LCISI_endpoint_super_t super;
   LCISI_server_t* server;
+  struct fid_domain* domain;
   struct fid_ep* ep;
   struct fid_cq* cq;
   struct fid_av* av;
@@ -57,10 +53,11 @@ typedef struct __attribute__((aligned(LCI_CACHE_LINE))) LCISI_endpoint_t {
 
 extern int g_next_rdma_key;
 
-static inline void* LCISI_real_server_reg(LCIS_server_t s, void* buf,
-                                          size_t size)
+static inline void* LCISI_real_server_reg(LCIS_endpoint_t endpoint_pp,
+                                          void* buf, size_t size)
 {
-  LCISI_server_t* server = (LCISI_server_t*)s;
+  LCISI_endpoint_t* endpoint_p = (LCISI_endpoint_t*)endpoint_pp;
+  LCISI_server_t* server = endpoint_p->server;
   int rdma_key;
   if (server->info->domain_attr->mr_mode & FI_MR_PROV_KEY) {
     rdma_key = 0;
@@ -68,21 +65,11 @@ static inline void* LCISI_real_server_reg(LCIS_server_t s, void* buf,
     rdma_key = __sync_fetch_and_add(&g_next_rdma_key, 1);
   }
   struct fid_mr* mr;
-  FI_SAFECALL(fi_mr_reg(server->domain, buf, size,
+  FI_SAFECALL(fi_mr_reg(endpoint_p->domain, buf, size,
                         FI_READ | FI_WRITE | FI_REMOTE_WRITE, 0, rdma_key, 0,
                         &mr, 0));
   if (server->info->domain_attr->mr_mode & FI_MR_ENDPOINT) {
-    LCI_DBG_Assert(server->endpoint_count >= 1, "No endpoints available!\n");
-    if (server->cxi_mr_bind_hack) {
-      // A temporary fix for the cxi provider, currently cxi cannot bind a
-      // memory region to more than one endpoint.
-      FI_SAFECALL(fi_mr_bind(
-          mr, &server->endpoints[server->endpoint_count - 1]->ep->fid, 0));
-    } else {
-      for (int i = 0; i < server->endpoint_count; ++i) {
-        FI_SAFECALL(fi_mr_bind(mr, &server->endpoints[i]->ep->fid, 0));
-      }
-    }
+    FI_SAFECALL(fi_mr_bind(mr, &endpoint_p->ep->fid, 0));
     FI_SAFECALL(fi_mr_enable(mr));
   }
   return (void*)mr;
@@ -94,10 +81,11 @@ static inline void LCISI_real_server_dereg(void* mr_opaque)
   FI_SAFECALL(fi_close((struct fid*)&mr->fid));
 }
 
-static inline LCIS_mr_t LCISD_rma_reg(LCIS_server_t s, void* buf, size_t size)
+static inline LCIS_mr_t LCISD_rma_reg(LCIS_endpoint_t endpoint_pp, void* buf,
+                                      size_t size)
 {
   LCIS_mr_t mr;
-  mr.mr_p = LCISI_real_server_reg(s, buf, size);
+  mr.mr_p = LCISI_real_server_reg(endpoint_pp, buf, size);
   mr.address = buf;
   mr.length = size;
   return mr;
@@ -132,8 +120,9 @@ static inline int LCISD_poll_cq(LCIS_endpoint_t endpoint_pp,
   ne = fi_cq_read(endpoint_p->cq, &fi_entry, LCI_CQ_MAX_POLL);
   LCISI_OFI_CS_EXIT(endpoint_p, LCI_BACKEND_TRY_LOCK_POLL)
   ret = ne;
+  LCII_PCOUNTER_ADD(net_poll_cq_calls, 1);
   if (ne > 0) {
-    LCII_PCOUNTER_ADD(net_poll_cq_num, ne);
+    LCII_PCOUNTER_ADD(net_poll_cq_entry_count, ne);
     // Got an entry here
     for (int i = 0; i < ne; i++) {
       if (fi_entry[i].flags & FI_RECV) {
@@ -240,12 +229,6 @@ static inline LCI_error_t LCISD_post_puts(LCIS_endpoint_t endpoint_pp, int rank,
                                           LCIS_rkey_t rkey)
 {
   LCISI_endpoint_t* endpoint_p = (LCISI_endpoint_t*)endpoint_pp;
-  LCI_Assert(
-      !endpoint_p->server->cxi_mr_bind_hack ||
-          endpoint_p == endpoint_p->server
-                            ->endpoints[endpoint_p->server->endpoint_count - 1],
-      "We are using cxi mr_bind hacking mode but unexpected endpoint is "
-      "performing remote put. Try `export LCI_ENABLE_PRG_NET_ENDPOINT=0`.\n");
   uintptr_t addr;
   if (endpoint_p->server->info->domain_attr->mr_mode & FI_MR_VIRT_ADDR ||
       endpoint_p->server->info->domain_attr->mr_mode & FI_MR_BASIC) {
@@ -292,12 +275,6 @@ static inline LCI_error_t LCISD_post_put(LCIS_endpoint_t endpoint_pp, int rank,
                                          LCIS_rkey_t rkey, void* ctx)
 {
   LCISI_endpoint_t* endpoint_p = (LCISI_endpoint_t*)endpoint_pp;
-  LCI_Assert(
-      !endpoint_p->server->cxi_mr_bind_hack ||
-          endpoint_p == endpoint_p->server
-                            ->endpoints[endpoint_p->server->endpoint_count - 1],
-      "We are using cxi mr_bind hacking mode but an unexpected endpoint is "
-      "performing remote put. Try `export LCI_ENABLE_PRG_NET_ENDPOINT=0`.\n");
   uintptr_t addr;
   if (endpoint_p->server->info->domain_attr->mr_mode & FI_MR_VIRT_ADDR ||
       endpoint_p->server->info->domain_attr->mr_mode & FI_MR_BASIC) {
@@ -345,12 +322,6 @@ static inline LCI_error_t LCISD_post_putImms(LCIS_endpoint_t endpoint_pp,
                                              LCIS_rkey_t rkey, uint32_t meta)
 {
   LCISI_endpoint_t* endpoint_p = (LCISI_endpoint_t*)endpoint_pp;
-  LCI_Assert(
-      !endpoint_p->server->cxi_mr_bind_hack ||
-          endpoint_p == endpoint_p->server
-                            ->endpoints[endpoint_p->server->endpoint_count - 1],
-      "We are using cxi mr_bind hacking mode but an unexpected endpoint is "
-      "performing remote put. Try `export LCI_ENABLE_PRG_NET_ENDPOINT=0`.\n");
   uintptr_t addr;
   if (endpoint_p->server->info->domain_attr->mr_mode & FI_MR_VIRT_ADDR ||
       endpoint_p->server->info->domain_attr->mr_mode & FI_MR_BASIC) {
@@ -381,12 +352,6 @@ static inline LCI_error_t LCISD_post_putImm(LCIS_endpoint_t endpoint_pp,
                                             void* ctx)
 {
   LCISI_endpoint_t* endpoint_p = (LCISI_endpoint_t*)endpoint_pp;
-  LCI_Assert(
-      !endpoint_p->server->cxi_mr_bind_hack ||
-          endpoint_p == endpoint_p->server
-                            ->endpoints[endpoint_p->server->endpoint_count - 1],
-      "We are using cxi mr_bind hacking mode but an unexpected endpoint is "
-      "performing remote put. Try `export LCI_ENABLE_PRG_NET_ENDPOINT=0`.\n");
   uintptr_t addr;
   if (endpoint_p->server->info->domain_attr->mr_mode & FI_MR_VIRT_ADDR ||
       endpoint_p->server->info->domain_attr->mr_mode & FI_MR_BASIC) {

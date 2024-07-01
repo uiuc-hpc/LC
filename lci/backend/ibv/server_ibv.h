@@ -18,8 +18,6 @@
     ;
 
 typedef struct __attribute__((aligned(LCI_CACHE_LINE))) LCISI_server_t {
-  LCI_device_t device;
-
   // Device fields.
   struct ibv_device** dev_list;
   struct ibv_device* ib_dev;
@@ -62,10 +60,11 @@ typedef struct LCISI_endpoint_t {
   int qp2rank_mod;
 } LCISI_endpoint_t;
 
-static inline void* LCISI_real_server_reg(LCIS_server_t s, void* buf,
-                                          size_t size)
+static inline void* LCISI_real_server_reg(LCIS_endpoint_t endpoint_pp,
+                                          void* buf, size_t size)
 {
-  LCISI_server_t* server = (LCISI_server_t*)s;
+  LCISI_endpoint_t* endpoint_p = (LCISI_endpoint_t*)endpoint_pp;
+  LCISI_server_t* server = endpoint_p->server;
   int mr_flags;
   if (LCI_IBV_USE_ODP) {
     mr_flags = IBV_ACCESS_ON_DEMAND | IBV_ACCESS_LOCAL_WRITE |
@@ -87,16 +86,18 @@ static inline uint32_t ibv_rma_lkey(LCIS_mr_t mr)
   return ((struct ibv_mr*)mr.mr_p)->lkey;
 }
 
-static inline LCIS_mr_t LCISD_rma_reg(LCIS_server_t s, void* buf, size_t size)
+static inline LCIS_mr_t LCISD_rma_reg(LCIS_endpoint_t endpoint_pp, void* buf,
+                                      size_t size)
 {
-  LCISI_server_t* server = (LCISI_server_t*)s;
+  LCISI_endpoint_t* endpoint_p = (LCISI_endpoint_t*)endpoint_pp;
+  LCISI_server_t* server = endpoint_p->server;
   LCIS_mr_t mr;
   if (LCI_IBV_USE_ODP == 2) {
     mr.mr_p = server->odp_mr;
     mr.address = buf;
     mr.length = size;
   } else {
-    mr.mr_p = LCISI_real_server_reg(s, buf, size);
+    mr.mr_p = LCISI_real_server_reg(endpoint_pp, buf, size);
     mr.address = buf;
     mr.length = size;
   }
@@ -139,7 +140,8 @@ static inline int LCISD_poll_cq(LCIS_endpoint_t endpoint_pp,
 #ifdef LCI_ENABLE_MULTITHREAD_PROGRESS
   LCIU_release_spinlock(&endpoint_p->cq_lock);
 #endif
-  if (ne > 0) LCII_PCOUNTER_ADD(net_poll_cq_num, ne);
+  LCII_PCOUNTER_ADD(net_poll_cq_calls, 1);
+  if (ne > 0) LCII_PCOUNTER_ADD(net_poll_cq_entry_count, ne);
   for (int i = 0; i < ne; i++) {
     LCI_DBG_Assert(
         wc[i].status == IBV_WC_SUCCESS, "Failed status %s (%d) for wr_id %d\n",

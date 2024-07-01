@@ -26,7 +26,8 @@ LCI_error_t LCI_sendmc(LCI_endpoint_t ep, LCI_mbuffer_t buffer, int rank,
                  "buffer is too large %lu (maximum: %d)\n", buffer.length,
                  LCI_MEDIUM_SIZE);
   LCI_error_t ret = LCI_OK;
-  bool is_user_provided_packet = LCII_is_packet(ep->device, buffer.address);
+  bool is_user_provided_packet =
+      LCII_is_packet(ep->device->heap, buffer.address);
   if (completion == NULL && buffer.length <= LCI_SHORT_SIZE) {
     /* if data is this short, we will be able to inline it
      * no reason to get a packet, allocate a ctx, etc */
@@ -72,7 +73,7 @@ LCI_error_t LCI_sendmc(LCI_endpoint_t ep, LCI_mbuffer_t buffer, int rank,
 
     ret = LCIS_post_send(ep->device->endpoint_worker->endpoint, rank,
                          packet->data.address, buffer.length,
-                         ep->device->heap.segment->mr,
+                         ep->device->heap_segment->mr,
                          LCII_MAKE_PROTO(ep->gid, LCI_MSG_MEDIUM, tag), ctx);
     if (ret == LCI_ERR_RETRY) {
       if (!is_user_provided_packet) LCII_free_packet(packet);
@@ -141,7 +142,7 @@ LCI_error_t LCI_sendl(LCI_endpoint_t ep, LCI_lbuffer_t buffer, int rank,
 
   LCI_error_t ret = LCIS_post_send(
       ep->device->endpoint_worker->endpoint, rank, packet->data.address,
-      sizeof(struct LCII_packet_rts_t), ep->device->heap.segment->mr,
+      sizeof(struct LCII_packet_rts_t), ep->device->heap_segment->mr,
       LCII_MAKE_PROTO(ep->gid, LCI_MSG_RTS, tag), rts_ctx);
   if (ret == LCI_ERR_RETRY) {
     LCII_free_packet(packet);

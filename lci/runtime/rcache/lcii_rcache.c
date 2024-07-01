@@ -30,9 +30,9 @@ static ucs_status_t LCII_rcache_mem_reg_cb(void* context, ucs_rcache_t* rcache,
 {
   LCII_rcache_entry_t* region = ucs_derived_of(rregion, LCII_rcache_entry_t);
   LCI_device_t device = context;
-  region->mr =
-      LCIS_rma_reg(device->server, (void*)region->super.super.start,
-                   region->super.super.end - region->super.super.start);
+  region->mr = LCIS_rma_reg(
+      device->endpoint_progress->endpoint, (void*)region->super.super.start,
+      region->super.super.end - region->super.super.start);
   return UCS_OK;
 }
 

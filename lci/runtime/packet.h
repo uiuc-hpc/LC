@@ -70,6 +70,7 @@ static inline LCII_packet_t* LCII_alloc_packet_nb(struct LCII_pool_t* pool)
   LCII_packet_t* packet = LCII_pool_get_nb(pool);
   if (packet != NULL) {
     LCII_PCOUNTER_ADD(packet_get, 1);
+    packet->context.poolid = LCII_POOLID_LOCAL;
 #ifdef LCI_DEBUG
     LCI_DBG_Assert(packet->context.isInPool,
                    "This packet has already been allocated!\n");
@@ -102,12 +103,12 @@ static inline LCII_packet_t* LCII_mbuffer2packet(LCI_mbuffer_t mbuffer)
   return (LCII_packet_t*)(mbuffer.address - offsetof(LCII_packet_t, data));
 }
 
-static inline bool LCII_is_packet(LCI_device_t device, void* address)
+static inline bool LCII_is_packet(LCII_packet_heap_t* heap, void* address)
 {
   void* packet_address =
       (LCII_packet_t*)(address - offsetof(LCII_packet_t, data));
-  uintptr_t offset = (uintptr_t)packet_address - device->base_packet;
-  return (uintptr_t)packet_address >= device->base_packet &&
+  uintptr_t offset = (uintptr_t)packet_address - (uintptr_t)heap->base_packet_p;
+  return (uintptr_t)packet_address >= (uintptr_t)heap->base_packet_p &&
          offset % LCI_PACKET_SIZE == 0 &&
          offset / LCI_PACKET_SIZE < LCI_SERVER_NUM_PKTS;
 }

@@ -14,7 +14,7 @@ LCI_error_t LCII_endpoint_init(LCI_endpoint_t* ep_ptr, LCI_device_t device,
   *ep_ptr = ep;
 
   ep->device = device;
-  ep->pkpool = device->pkpool;
+  ep->pkpool = device->heap->pool;
   ep->mt = device->mt;
   ep->ctx_archive_p = &device->ctx_archive;
   ep->bq_p = &device->bq;

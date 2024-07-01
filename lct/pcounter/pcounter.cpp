@@ -475,6 +475,8 @@ void record_thread_fn(ctx_t* ctx, uint64_t record_interval)
     else if (ctx->dump_record_on_the_fly) {
       ctx->record();
       ctx->dump(ctx->dump_ofile);
+    } else {
+      break;
     }
     usleep(record_interval);
   }

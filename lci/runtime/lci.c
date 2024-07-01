@@ -7,6 +7,48 @@ static int opened = 0;
 int LCIU_nthreads = 0;
 __thread int LCIU_thread_id = -1;
 __thread unsigned int LCIU_rand_seed = 0;
+LCIS_server_t g_server;
+LCII_packet_heap_t g_heap;
+
+void initialize_packet_heap(LCII_packet_heap_t* heap)
+{
+  heap->length = LCI_CACHE_LINE + (size_t)LCI_SERVER_NUM_PKTS * LCI_PACKET_SIZE;
+  heap->address = LCIU_memalign(LCI_PAGESIZE, heap->length);
+  LCI_Assert(LCI_CACHE_LINE >= sizeof(struct LCII_packet_context),
+             "packet context is too large!\n");
+  heap->base_packet_p =
+      heap->address + LCI_CACHE_LINE - sizeof(struct LCII_packet_context);
+  LCI_Assert(LCI_PACKET_SIZE % LCI_CACHE_LINE == 0,
+             "The size of packets should be a multiple of cache line size\n");
+  LCII_pool_create(&heap->pool);
+  for (size_t i = 0; i < LCI_SERVER_NUM_PKTS; i++) {
+    LCII_packet_t* packet =
+        (LCII_packet_t*)(heap->base_packet_p + i * LCI_PACKET_SIZE);
+    LCI_Assert(((uint64_t) & (packet->data)) % LCI_CACHE_LINE == 0,
+               "packet.data is not well-aligned\n");
+    LCI_Assert(LCII_is_packet(heap, packet->data.address),
+               "Not a packet. The computation is wrong!\n");
+    packet->context.pkpool = heap->pool;
+    packet->context.poolid = 0;
+#ifdef LCI_DEBUG
+    packet->context.isInPool = true;
+#endif
+    LCII_pool_put(heap->pool, packet);
+  }
+  LCI_Assert(LCI_SERVER_NUM_PKTS > 2 * LCI_SERVER_MAX_RECVS,
+             "The packet number is too small!\n");
+  heap->total_recv_posted = 0;
+}
+
+void finalize_packet_heap(LCII_packet_heap_t* heap)
+{
+  int total_num = LCII_pool_count(heap->pool) + heap->total_recv_posted;
+  if (total_num != LCI_SERVER_NUM_PKTS)
+    LCI_Warn("Potentially losing packets %d != %d\n", total_num,
+             LCI_SERVER_NUM_PKTS);
+  LCII_pool_destroy(heap->pool);
+  LCIU_free(heap->address);
+}
 
 LCI_error_t LCI_initialize()
 {
@@ -35,9 +77,11 @@ LCI_error_t LCI_initialize()
     LCI_Assert(false, "LCI_COMPILE_DREG is not enabled!\n");
 #endif
   }
-
+  // initialize global data structure
+  LCIS_server_init(&g_server);
+  initialize_packet_heap(&g_heap);
+  // UR objects
   LCI_device_init(&LCI_UR_DEVICE);
-
   LCI_queue_create(LCI_UR_DEVICE, &LCI_UR_CQ);
   LCI_plist_t plist;
   LCI_plist_create(&plist);
@@ -66,6 +110,8 @@ LCI_error_t LCI_finalize()
   LCI_endpoint_free(&LCI_UR_ENDPOINT);
   LCI_queue_free(&LCI_UR_CQ);
   LCI_device_free(&LCI_UR_DEVICE);
+  LCIS_server_fina(g_server);
+  finalize_packet_heap(&g_heap);
   if (LCI_USE_DREG) {
 #ifdef LCI_COMPILE_DREG
     LCII_ucs_cleanup();

@@ -30,7 +30,9 @@ extern LCT_pcounter_ctx_t LCII_pcounter_ctx;
     _macro(net_send_failed_lock)             \
     _macro(net_send_failed_nomem)            \
     _macro(net_recv_failed_nopacket)         \
-    _macro(net_poll_cq_num)                  \
+    _macro(net_poll_cq_attempts)             \
+    _macro(net_poll_cq_calls)                \
+    _macro(net_poll_cq_entry_count)          \
     _macro(progress_call)                    \
     _macro(packet_get)                       \
     _macro(packet_put)                       \

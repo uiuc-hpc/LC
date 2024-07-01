@@ -287,7 +287,7 @@ static inline void LCII_handle_rts(LCI_endpoint_t ep, LCII_packet_t* packet,
   LCII_PCOUNTER_START(rts_send_timer);
   LCIS_post_send_bq(ep->bq_p, ep->bq_spinlock_p, endpoint_to_use,
                     (int)rdv_ctx->rank, packet->data.address, length,
-                    ep->device->heap.segment->mr,
+                    ep->device->heap_segment->mr,
                     LCII_MAKE_PROTO(ep->gid, LCI_MSG_RTR, 0), rtr_ctx);
   LCII_PCOUNTER_END(rts_send_timer);
 }

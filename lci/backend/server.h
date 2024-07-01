@@ -49,9 +49,10 @@ static inline void LCIS_serve_send(void* ctx);
 
 /* Following functions are required to be implemented by each server backend. */
 
-void LCISD_server_init(LCI_device_t device, LCIS_server_t* s);
+void LCISD_server_init(LCIS_server_t* s);
 void LCISD_server_fina(LCIS_server_t s);
-static inline LCIS_mr_t LCISD_rma_reg(LCIS_server_t s, void* buf, size_t size);
+static inline LCIS_mr_t LCISD_rma_reg(LCIS_endpoint_t endpoint_pp, void* buf,
+                                      size_t size);
 static inline void LCISD_rma_dereg(LCIS_mr_t mr);
 static inline LCIS_rkey_t LCISD_rma_rkey(LCIS_mr_t mr);
 
@@ -116,10 +117,7 @@ static inline LCI_error_t LCISD_post_recv(LCIS_endpoint_t endpoint_pp,
     LCIU_release_spinlock(&LCIS_endpoint_super(endpoint).lock);
 
 /* Wrapper functions */
-static inline void LCIS_server_init(LCI_device_t device, LCIS_server_t* s)
-{
-  LCISD_server_init(device, s);
-}
+static inline void LCIS_server_init(LCIS_server_t* s) { LCISD_server_init(s); }
 
 static inline void LCIS_server_fina(LCIS_server_t s) { LCISD_server_fina(s); }
 
@@ -128,10 +126,11 @@ static inline LCIS_rkey_t LCIS_rma_rkey(LCIS_mr_t mr)
   return LCISD_rma_rkey(mr);
 }
 
-static inline LCIS_mr_t LCIS_rma_reg(LCIS_server_t s, void* buf, size_t size)
+static inline LCIS_mr_t LCIS_rma_reg(LCIS_endpoint_t endpoint_pp, void* buf,
+                                     size_t size)
 {
   LCII_PCOUNTER_START(net_mem_reg_timer);
-  LCIS_mr_t mr = LCISD_rma_reg(s, buf, size);
+  LCIS_mr_t mr = LCISD_rma_reg(endpoint_pp, buf, size);
   LCII_PCOUNTER_END(net_mem_reg_timer);
   LCI_DBG_Log(LCI_LOG_TRACE, "server-reg",
               "LCIS_rma_reg: mr %p buf %p size %lu rkey %lu\n", mr.mr_p, buf,
@@ -166,6 +165,7 @@ static inline void LCIS_endpoint_fina(LCIS_endpoint_t endpoint_pp)
 static inline int LCIS_poll_cq(LCIS_endpoint_t endpoint_pp,
                                LCIS_cq_entry_t* entry)
 {
+  LCII_PCOUNTER_ADD(net_poll_cq_attempts, 1);
   LCISI_CS_ENTER(endpoint_pp, 0);
   int ret = LCISD_poll_cq(endpoint_pp, entry);
   LCISI_CS_EXIT(endpoint_pp);

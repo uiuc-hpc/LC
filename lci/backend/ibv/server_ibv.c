@@ -73,11 +73,10 @@ void LCISI_event_polling_thread_fina(LCISI_server_t* server)
   }
 }
 
-void LCISD_server_init(LCI_device_t device, LCIS_server_t* s)
+void LCISD_server_init(LCIS_server_t* s)
 {
   LCISI_server_t* server = LCIU_malloc(sizeof(LCISI_server_t));
   *s = (LCIS_server_t)server;
-  server->device = device;
 
   int num_devices;
   server->dev_list = ibv_get_device_list(&num_devices);

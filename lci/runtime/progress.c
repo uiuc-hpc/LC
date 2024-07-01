@@ -113,7 +113,7 @@ LCI_error_t LCII_fill_rq(LCII_endpoint_t* endpoint, bool block)
 
     // First, get a packet.
     LCII_PCOUNTER_START(get_recv_packet_timer);
-    LCII_packet_t* packet = LCII_alloc_packet_nb(endpoint->device->pkpool);
+    LCII_packet_t* packet = LCII_alloc_packet_nb(endpoint->device->heap->pool);
     LCII_PCOUNTER_END(get_recv_packet_timer);
     if (packet == NULL) {
       LCII_PCOUNTER_ADD(net_recv_failed_nopacket, 1);
@@ -124,7 +124,7 @@ LCI_error_t LCII_fill_rq(LCII_endpoint_t* endpoint, bool block)
       // packet->context.poolid = lc_pool_get_local(endpoint->device->pkpool);
       LCI_error_t rc = LCIS_post_recv(
           endpoint->endpoint, packet->data.address, LCI_MEDIUM_SIZE,
-          endpoint->device->heap.segment->mr, packet);
+          endpoint->device->heap_segment->mr, packet);
       if (rc == LCI_OK) {
         LCII_PCOUNTER_START(update_posted_recv);
 #ifdef LCI_ENABLE_MULTITHREAD_PROGRESS

@@ -15,11 +15,10 @@ static struct fi_info* search_for_prov(struct fi_info* info, char* prov_name)
   return NULL;
 }
 
-void LCISD_server_init(LCI_device_t device, LCIS_server_t* s)
+void LCISD_server_init(LCIS_server_t* s)
 {
   LCISI_server_t* server = LCIU_malloc(sizeof(LCISI_server_t));
   *s = (LCIS_server_t)server;
-  server->device = device;
 
   // Create hint.
   char* p = getenv("LCI_OFI_PROVIDER_HINT");
@@ -104,6 +103,10 @@ void LCISD_server_init(LCI_device_t device, LCIS_server_t* s)
     LCI_Assert(LCI_USE_DREG == 0,
                "The registration cache should be turned off "
                "for libfabric cxi backend. Use `export LCI_USE_DREG=0`.\n");
+    LCI_Assert(LCI_ENABLE_PRG_NET_ENDPOINT == 0,
+               "The progress-specific network endpoint "
+               "for libfabric cxi backend. Use `export "
+               "LCI_ENABLE_PRG_NET_ENDPOINT=0`.\n");
     if (LCI_RDV_PROTOCOL != LCI_RDV_WRITE) {
       LCI_RDV_PROTOCOL = LCI_RDV_WRITE;
       LCI_Warn(
@@ -114,19 +117,11 @@ void LCISD_server_init(LCI_device_t device, LCIS_server_t* s)
 
   // Create libfabric obj.
   FI_SAFECALL(fi_fabric(server->info->fabric_attr, &server->fabric, NULL));
-
-  // Create domain.
-  FI_SAFECALL(fi_domain(server->fabric, server->info, &server->domain, NULL));
-
-  server->endpoint_count = 0;
 }
 
 void LCISD_server_fina(LCIS_server_t s)
 {
   LCISI_server_t* server = (LCISI_server_t*)s;
-  LCI_Assert(server->endpoint_count == 0, "Endpoint count is not zero (%d)\n",
-             server->endpoint_count);
-  FI_SAFECALL(fi_close((struct fid*)&server->domain->fid));
   FI_SAFECALL(fi_close((struct fid*)&server->fabric->fid));
   fi_freeinfo(server->info);
   free(s);
@@ -139,23 +134,16 @@ void LCISD_endpoint_init(LCIS_server_t server_pp, LCIS_endpoint_t* endpoint_pp,
   LCISI_endpoint_t* endpoint_p = LCIU_malloc(sizeof(LCISI_endpoint_t));
   *endpoint_pp = (LCIS_endpoint_t)endpoint_p;
   endpoint_p->server = (LCISI_server_t*)server_pp;
-  endpoint_p->server->endpoints[endpoint_p->server->endpoint_count++] =
-      endpoint_p;
   endpoint_p->is_single_threaded = single_threaded;
-  if (!LCI_OFI_CXI_TRY_NO_HACK &&
-      strcmp(endpoint_p->server->info->fabric_attr->prov_name, "cxi") == 0 &&
-      endpoint_p->server->info->domain_attr->mr_mode & FI_MR_ENDPOINT &&
-      endpoint_p->server->endpoint_count > 1) {
-    // We are using more than one endpoint per server, but the cxi provider
-    // can only bind mr to one endpoint. We have to guess here.
-    endpoint_p->server->cxi_mr_bind_hack = true;
-  } else {
-    endpoint_p->server->cxi_mr_bind_hack = false;
-  }
+
+  // Create domain.
+  FI_SAFECALL(fi_domain(endpoint_p->server->fabric, endpoint_p->server->info,
+                        &endpoint_p->domain, NULL));
+
   // Create end-point;
   endpoint_p->server->info->tx_attr->size = LCI_SERVER_MAX_SENDS;
   endpoint_p->server->info->rx_attr->size = LCI_SERVER_MAX_RECVS;
-  FI_SAFECALL(fi_endpoint(endpoint_p->server->domain, endpoint_p->server->info,
+  FI_SAFECALL(fi_endpoint(endpoint_p->domain, endpoint_p->server->info,
                           &endpoint_p->ep, NULL));
 
   // Create cq.
@@ -163,8 +151,7 @@ void LCISD_endpoint_init(LCIS_server_t server_pp, LCIS_endpoint_t* endpoint_pp,
   memset(&cq_attr, 0, sizeof(struct fi_cq_attr));
   cq_attr.format = FI_CQ_FORMAT_DATA;
   cq_attr.size = LCI_SERVER_MAX_CQES;
-  FI_SAFECALL(
-      fi_cq_open(endpoint_p->server->domain, &cq_attr, &endpoint_p->cq, NULL));
+  FI_SAFECALL(fi_cq_open(endpoint_p->domain, &cq_attr, &endpoint_p->cq, NULL));
 
   // Bind my ep to cq.
   FI_SAFECALL(
@@ -173,8 +160,7 @@ void LCISD_endpoint_init(LCIS_server_t server_pp, LCIS_endpoint_t* endpoint_pp,
   struct fi_av_attr av_attr;
   memset(&av_attr, 0, sizeof(av_attr));
   av_attr.type = FI_AV_MAP;
-  FI_SAFECALL(
-      fi_av_open(endpoint_p->server->domain, &av_attr, &endpoint_p->av, NULL));
+  FI_SAFECALL(fi_av_open(endpoint_p->domain, &av_attr, &endpoint_p->av, NULL));
   FI_SAFECALL(fi_ep_bind(endpoint_p->ep, (fid_t)endpoint_p->av, 0));
   FI_SAFECALL(fi_enable(endpoint_p->ep));
 
@@ -224,11 +210,8 @@ void LCISD_endpoint_fina(LCIS_endpoint_t endpoint_pp)
   LCT_pmi_barrier();
   LCISI_endpoint_t* endpoint_p = (LCISI_endpoint_t*)endpoint_pp;
   LCIU_free(endpoint_p->peer_addrs);
-  int my_idx = --endpoint_p->server->endpoint_count;
-  LCI_Assert(endpoint_p->server->endpoints[my_idx] == endpoint_p,
-             "This is not me!\n");
-  endpoint_p->server->endpoints[my_idx] = NULL;
   FI_SAFECALL(fi_close((struct fid*)&endpoint_p->ep->fid));
   FI_SAFECALL(fi_close((struct fid*)&endpoint_p->cq->fid));
   FI_SAFECALL(fi_close((struct fid*)&endpoint_p->av->fid));
+  FI_SAFECALL(fi_close((struct fid*)&endpoint_p->domain->fid));
 }
